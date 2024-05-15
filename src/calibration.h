@@ -62,11 +62,29 @@ void writeCal(){
     }
     unsigned long crc = eeprom_crc();
     EEPROM.put(EEPROM.length() - sizeof(unsigned long), crc);
+    Serial.println(F("Calibration data written to EEPROM"));
 }
 
+void printCalibration(){
+    for(int i = 0; i < 2; i++){
+        Serial.print(F("Sensor "));
+        Serial.print(i == SENSOR_AMBIENT ? F("Ambient") : F("Heater"));
+        Serial.print(F(" Low: "));
+        Serial.print(calibration[i].tempLow / tempMultiplyFactor);
+        Serial.print(F(" High: "));
+        Serial.print(calibration[i].tempHigh / tempMultiplyFactor);
+        Serial.print(F(" Low ADC: "));
+        Serial.print(calibration[i].adcLow);
+        Serial.print(F(" High ADC: "));
+        Serial.print(calibration[i].adcHigh);
+        Serial.print(F(" Offset: "));
+        Serial.println(calibration[i].offset);
+    }
+
+}
 void getCalibration(){
     if (!checkEepromCrc()){
-        Serial.println("EEPROM CRC check failed, wiping and using defaults");
+        Serial.println(F("EEPROM CRC check failed, wiping and using defaults"));
         wipeEeprom();
         writeCal();
         return;
@@ -77,5 +95,7 @@ void getCalibration(){
         EEPROM.get(i * sizeof(calibrationData), data);
         calibration[i] = data;
     }
+    Serial.println(F("Calibration data loaded from EEPROM"));
+    printCalibration();
 }
 #endif
