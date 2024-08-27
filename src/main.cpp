@@ -3,6 +3,7 @@
 #include "calibration.h"
 #include "serial.h"
 #include "temperature.h"
+#include "7segment.h"
 #include <avr/sleep.h>
 
 // Globals
@@ -16,6 +17,34 @@ void zzz(){
   sleep_disable();
 }
 
+
+void printPortStautus(){
+  Serial.print(F("PORT Outputs\n    PORTA: "));
+  Serial.print(PORTA.OUT, BIN);
+  Serial.print(F(" PORTB: "));
+  Serial.print(PORTB.OUT, BIN);
+  Serial.print(F(" PORTC: "));
+  Serial.println(PORTC.OUT, BIN);
+}
+
+void printPortDriection(){
+  Serial.print(F("PORT Direction\n    PORTA: "));
+  Serial.print(PORTA.DIR, BIN);
+  Serial.print(F(" PORTB: "));
+  Serial.print(PORTB.DIR, BIN);
+  Serial.print(F(" PORTC: "));
+  Serial.println(PORTC.DIR, BIN);
+}
+
+SegmentDisplay display(2, COMMON_ANODE_INV_DIGIT);
+
+void printMask(uint8_t mask){
+  for(int i = 0; i < 8; i++){
+    Serial.print(mask & 128);
+    mask <<= 1;
+  }
+}
+
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -27,36 +56,48 @@ void setup() {
   Serial.println(F("Starting up"));
   setupAdc();
   getCalibration();
+  display.begin();
   Serial.println(F("Setup complete"));
+
+  display.display("--aa", 4);
+  printPortDriection();
 }
 
 // the loop function runs over and over again forever
 void loop() {
-  static uint32_t nextWakeUp = millis() + 1000;
+  static uint32_t nextWakeUp = millis() + 5000;
+  static uint16_t counter = 0;
 
   // Check the serial
   handleSerial();
+  display.next();
   if(!running || millis() < nextWakeUp){
     zzz();
     return;
   }
 
   nextWakeUp = millis() + 1000;
-  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  // Read the temperature from the sensors
-  long tempAmbient = readTemp(tempPinAmbient);
-  long tempHeater = readTemp(tempPinHeater);
-
-  printTemps(tempAmbient, tempHeater);
-
-  // turn on the heater if needed
-  if (tempHeater > maxHeaterTemp * tempMultiplyFactor){
-    digitalWrite(heaterOutput, LOW);
-  } else if (tempAmbient < targetTemp * tempMultiplyFactor - tempHysteresis * tempMultiplyFactor){
-    digitalWrite(heaterOutput, HIGH);
-  } else if (tempAmbient > targetTemp * tempMultiplyFactor + tempHysteresis * tempMultiplyFactor){
-    digitalWrite(heaterOutput, LOW);
+  counter++;
+  digitalWrite(LED_BUILTIN, counter & 1);
+  display.display(counter);
+  if (counter >= 100){
+    counter = 0;
   }
+  // digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+  // // Read the temperature from the sensors
+  // long tempAmbient = readTemp(tempPinAmbient);
+  // long tempHeater = readTemp(tempPinHeater);
 
-  digitalWrite(LED_BUILTIN, LOW);
+  // printTemps(tempAmbient, tempHeater);
+
+  // // turn on the heater if needed
+  // if (tempHeater > maxHeaterTemp * tempMultiplyFactor){
+  //   digitalWrite(heaterOutput, LOW);
+  // } else if (tempAmbient < targetTemp * tempMultiplyFactor - tempHysteresis * tempMultiplyFactor){
+  //   digitalWrite(heaterOutput, HIGH);
+  // } else if (tempAmbient > targetTemp * tempMultiplyFactor + tempHysteresis * tempMultiplyFactor){
+  //   digitalWrite(heaterOutput, LOW);
+  // }
+
+  // digitalWrite(LED_BUILTIN, LOW);
 }

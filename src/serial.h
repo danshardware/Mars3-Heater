@@ -16,7 +16,7 @@ const char INVALID_ADC[] PROGMEM = "Invalid ADC reading - must be between 0 and 
 const char INVALID_OFFSET[] PROGMEM = "Invalid offset - must be between -100 and 100";
 
 void setupSerial(){
-    Serial.begin(115200);
+    Serial.begin(9600);
 }
 
 void printHelp(){
@@ -65,9 +65,8 @@ bool checkValidInt(char *buffer, int bufferLength, int index, long min, long max
         - s - save the calibration data to EEPROM
         - v - toggle verbose mode
         - h - print the help message
-        - help - print the help message
-        - start - begin the heating process
-        - stop - stop regulating temperature
+        - 1 - begin the heating process
+        - 0 - stop regulating temperature
 */
 
 // function to parse the serial input
@@ -155,6 +154,14 @@ void parseSerial(char *buffer, int bufferLength){
                 // print the help message
                 printHelp();
                 break;
+            case '1':
+                running = true;
+                Serial.println("Starting temperature regulation");
+                break;
+            case '0':
+                running = false;
+                Serial.println("Stopping temperature regulation");
+                break;
             case ' ':
                 // do nothing
                 break;
@@ -164,23 +171,9 @@ void parseSerial(char *buffer, int bufferLength){
                 break;
         }
     }
-    else{
-        // use the leng of the buffer and memcmp to find what we're trying to do
-        if(bufferLength >= 4 && memcmp(buffer, "stop", 4) == 0){
-            running = false;
-            Serial.println("Stopping temperature regulation");
-        }
-        else if(bufferLength >= 5 && memcmp(buffer, "start", 5) == 0){
-            running = true;
-            Serial.println("Starting temperature regulation");
-        }
-        else if(bufferLength >= 4 && memcmp(buffer, "help", 4) == 0){
-            printHelp();
-        }
-        else{
-            Serial.print("Unknown command: ");
-            Serial.println(buffer);
-        }
+    else {
+        Serial.print("Unknown command: ");
+        Serial.println(command);
     }
 }
 
