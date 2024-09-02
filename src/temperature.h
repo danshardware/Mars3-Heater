@@ -42,18 +42,26 @@ long readTemp(int sensorId, int oversample = 8){
   for (int counter = 0; counter < oversample; counter++){
     sum += analogRead(pin);
   }
-  uint32_t val = sum / oversample;
+  long val = sum / oversample;
 
   // We are using a 10K NTC with a beta of 3950
   // NTC is in a voltage divider with a 10K resistor, and in parallel with another 10K resistor
   // ADC is set to 1.1V reference, 10 bits
-  long temperature = map(val, 
-    cal->adcHigh, 
-    cal->adcLow, 
-    (cal->tempHigh * tempMultiplyFactor),
-    (cal->tempLow * tempMultiplyFactor)) + 
-    cal->offset;
+
+  long adcOffset = val - (long)cal->adcLow;
+  long tempRange = ((long)cal->tempLow - (long)cal->tempHigh);
+  long adcRange = (long)cal->adcLow - (long)cal->adcHigh;
+  // Serial.print("ADC Offset: ");
+  // Serial.print(adcOffset);
+  // Serial.print(", Temp Range: ");
+  // Serial.print(tempRange);
+  // Serial.print(", ADC Range: ");
+  // Serial.print(adcRange);
+
+  long temperature = (adcOffset * tempRange) / adcRange + ((long)cal->tempLow + (long)cal->offset);
   
+  // Serial.print("Raw Temperature: ");
+  // Serial.println(temperature);
   if(verbose){
     printTempVerbose(sensorId, temperature, val);
   }

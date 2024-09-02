@@ -89,19 +89,16 @@ void parseSerial(char *buffer, int bufferLength){
 
     if(bufferLength == 1 || buffer[1] == ' '){
         switch(command){
-            case ' ':
-                // do nothing
-                break;
             case '0':
-                running = false;
+                {running = false;
                 Serial.println("Stopping temperature regulation");
-                break;
+                break;}
             case '1':
-                running = true;
+                {running = true;
                 Serial.println("Starting temperature regulation");
-                break;
+                break;}
             case 'c':
-                // calibrate the sensor
+                {// calibrate the sensor
                 sensorId = atoi(&buffer[2]);
                 if (!checkValidSensor(buffer, bufferLength, 2)){
                     Serial.println(INVALID_SENSOR_ID);
@@ -117,7 +114,7 @@ void parseSerial(char *buffer, int bufferLength){
                     Serial.println(INVALID_ADC);
                     return;
                 }
-                if (actualTemp < 25){
+                if (actualTemp < 30){
                     calibration[sensorId].adcLow = adc;
                     calibration[sensorId].tempLow = actualTemp * tempMultiplyFactor;
                     Serial.println(F("Low calibration point set"));
@@ -127,14 +124,14 @@ void parseSerial(char *buffer, int bufferLength){
                     Serial.println(F("High calibration point set"));
                 }
                 calibration[sensorId].offset = 0;
-                break;
+                break;}
 
             case 'h':
-                // print the help message
+                {// print the help message
                 printHelp();
-                break;
+                break;}
             case 'o':
-                // set the offset for the sensor
+                {// set the offset for the sensor
                 sensorId = atoi(&buffer[2]);
                 if (!checkValidSensor(buffer, bufferLength, 2)){
                     Serial.println(INVALID_SENSOR_ID);
@@ -145,14 +142,14 @@ void parseSerial(char *buffer, int bufferLength){
                     Serial.println(F("Invalid offset"));
                     return;
                 }
-                calibration[sensorId].offset = offset;
-                break;
+                calibration[sensorId].offset = offset * tempMultiplyFactor;
+                break;}
             case 'p':
-                // print the calibration data
+                {// print the calibration data
                 printCalibration();
-                break;
+                break;}
             case 'r':
-                // read the temperature from the sensor
+                {// read the temperature from the sensor
                 bool oldVerbose = verbose;
                 verbose = true;
                 int sensorId = atoi(&buffer[2]);
@@ -162,11 +159,14 @@ void parseSerial(char *buffer, int bufferLength){
                 }
                 long temp = readTemp(sensorId);
                 verbose = oldVerbose;
-                break;
+                break;}
             case 's':
+            {
                 writeCal();
                 break;
+            }
             case 't':
+            {
                 // set the target temperature
                 targetTemp = atol(&buffer[2]);
 
@@ -178,15 +178,20 @@ void parseSerial(char *buffer, int bufferLength){
                 Serial.print(targetTemp);
                 Serial.println(F("C"));
                 break;
+            }
             case 'v':
+            {
                 verbose = !verbose;
                 Serial.print(F("Verbose mode: "));
                 Serial.println(verbose ? "ON" : "OFF");
                 break;
+            }
             default:
+            {
                 Serial.print("Unknown command: ");
                 Serial.println(command);
                 break;
+            }
         }
     }
     else {

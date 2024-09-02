@@ -10,6 +10,7 @@
 // long targetTemp = 30;
 // bool running = true;
 // bool verbose = false;
+
 void zzz(){
   sleep_enable();
   set_sleep_mode (SLEEP_MODE_IDLE); 
@@ -67,37 +68,55 @@ void setup() {
 void loop() {
   static uint32_t nextWakeUp = millis() + 5000;
   static uint16_t counter = 0;
+  static int oldAmbient = 0;
+  static int oldHeater = 0;
 
   // Check the serial
   handleSerial();
   display.next();
+  if (!running){
+    display.display("--", 2);
+    digitalWrite(heaterOutput, LOW);
+  }
   if(!running || millis() < nextWakeUp){
     zzz();
     return;
   }
 
   nextWakeUp = millis() + 1000;
-  counter++;
-  digitalWrite(LED_BUILTIN, counter & 1);
-  display.display(counter);
-  if (counter >= 100){
-    counter = 0;
-  }
-  // digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-  // // Read the temperature from the sensors
-  // long tempAmbient = readTemp(tempPinAmbient);
-  // long tempHeater = readTemp(tempPinHeater);
-
-  // printTemps(tempAmbient, tempHeater);
-
-  // // turn on the heater if needed
-  // if (tempHeater > maxHeaterTemp * tempMultiplyFactor){
-  //   digitalWrite(heaterOutput, LOW);
-  // } else if (tempAmbient < targetTemp * tempMultiplyFactor - tempHysteresis * tempMultiplyFactor){
-  //   digitalWrite(heaterOutput, HIGH);
-  // } else if (tempAmbient > targetTemp * tempMultiplyFactor + tempHysteresis * tempMultiplyFactor){
-  //   digitalWrite(heaterOutput, LOW);
+  // counter++;
+  // digitalWrite(LED_BUILTIN, counter & 1);
+  // display.display(counter);
+  // if (counter >= 100){
+  //   counter = 0;
   // }
 
-  // digitalWrite(LED_BUILTIN, LOW);
+  // turn the LED on (HIGH is the voltage level)
+  digitalWrite(LED_BUILTIN, HIGH);  
+
+  // Read the temperature from the sensors
+  long tempAmbient = readTemp(SENSOR_AMBIENT);
+  long tempHeater = readTemp(SENSOR_HEATER);
+
+  if (verbose || tempAmbient != oldAmbient || tempHeater != oldHeater){
+    printTemps(tempAmbient, tempHeater);
+    oldAmbient = tempAmbient;
+    oldHeater = tempHeater;
+    if (tempAmbient > 99 * tempMultiplyFactor){
+      display.display("hi");
+    } else {
+      display.display(int(tempAmbient / tempMultiplyFactor));
+    }
+  }
+
+  // turn on the heater if needed
+  if (tempHeater > maxHeaterTemp * tempMultiplyFactor){
+    digitalWrite(heaterOutput, LOW);
+  } else if (tempAmbient < targetTemp * tempMultiplyFactor - tempHysteresis * tempMultiplyFactor){
+    digitalWrite(heaterOutput, HIGH);
+  } else if (tempAmbient > targetTemp * tempMultiplyFactor + tempHysteresis * tempMultiplyFactor){
+    digitalWrite(heaterOutput, LOW);
+  }
+
+  digitalWrite(LED_BUILTIN, LOW);
 }

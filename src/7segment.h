@@ -61,10 +61,10 @@ const segmentBitmask digitPins[MAX_DIGITS] = {
 #define SEG_G 6
 #define SEG_DP 7
 
-#define SYMBOL_COUNT 18
+#define SYMBOL_COUNT 20
 const char symbolLookup[SYMBOL_COUNT] = {
     '0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', '-', ' '
+    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', '-', ' '
 };
 
 struct symbol{
@@ -91,6 +91,8 @@ const symbol symbols[SYMBOL_COUNT] = {
     {5, {SEG_B, SEG_C, SEG_D, SEG_E, SEG_G}},    // d
     {5, {SEG_A, SEG_D, SEG_E, SEG_F, SEG_G}}, // e
     {4, {SEG_A, SEG_E, SEG_F, SEG_G}},  // f
+    {4, {SEG_C, SEG_E, SEG_F, SEG_G}},    // h
+    {1, {SEG_C}},  // i
     {1, {SEG_G}},  // -
     {0, {}} // blank
 };
